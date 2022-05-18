@@ -7,7 +7,9 @@ import { TreeNode } from './tree-specification';
 
 const server = fastify();
 const args = minimist(process.argv.slice(2));
-console.debug("arguments: ", args);
+const silent: boolean = args.silent !== undefined;
+
+if (!silent) console.debug("arguments: ", args);
 
 const baseUrl = new URL(args.baseUrl || 'http://localhost:8080')
 const repository = new LdesFragmentRepository();
@@ -39,8 +41,9 @@ const options = { port: Number.parseInt(baseUrl.port), host: baseUrl.hostname };
 server.listen(options, async (err, address) => {
   if (args.seed) {
     try {
-      (await controller.seed(args.seed)).forEach(x => 
-        console.debug(`seeded with file '${x.file}' containg fragment '${x.fragment}'`));
+      (await controller.seed(args.seed)).forEach(x => {
+        if (!silent) console.debug(`seeded with file '${x.file}' containg fragment '${x.fragment}'`);
+      });
     } catch (error) {
       console.error(error);
     }
@@ -50,5 +53,5 @@ server.listen(options, async (err, address) => {
     console.error(err)
     process.exit(1)
   }
-  console.log(`Server listening at ${address}`)
+  if (!silent) console.log(`Server listening at ${address}`)
 });

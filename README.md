@@ -24,6 +24,8 @@ The simulator accepts the following command line arguments:
 
 `--seed=<local-directory>` allows to seed the simulator with the fragments found in the given local directory, no default (will not serve any fragments)
 
+`--silent` prevents any console debug output
+
 To start the simulator you need to run the following at the command line in a terminal (bash, powershell, etc.):
 
 `node src/index.js` (use the default base URL)
