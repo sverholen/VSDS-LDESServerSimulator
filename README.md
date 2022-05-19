@@ -16,23 +16,22 @@ npm i
 npm run build
 ```
 
-## Start the simulator
+## Run the simulator
 
 The simulator accepts the following command line arguments:
+* `--port=<port-number>` allows to set the port on which to run the simulator server, defaults to 8080
+* `--baseUrl=<protocol+origin>` allows to set the base URL the server will use for re-writing a fragment ID origin (see [Upload a fragment](#upload-a-fragment) below), defaults to http://localhost:8080
+* `--seed=<local-directory>` allows to seed the simulator with the fragments found in the given local directory, no default (will not serve any fragments), optional
+* `--silent` prevents any console debug output, optional
 
-`--baseUrl=<protocol+origin>` allows to set the base URL the server will be serving, defaults to http://localhost:8080
-
-`--seed=<local-directory>` allows to seed the simulator with the fragments found in the given local directory, no default (will not serve any fragments)
-
-`--silent` prevents any console debug output
-
-To start the simulator you need to run the following at the command line in a terminal (bash, powershell, etc.):
-
-`node src/index.js` (use the default base URL)
-
-OR
-
-`node -- src/index.js --baseUrl=http://localhost:8080 --seed=./data/gipod` (providing custom arguments)
+To start the simulator you need to run one of the following commands in a terminal (bash, powershell, etc.):
+```bash
+npm start
+node dist/server.js
+node dist/server.js --silent
+node dist/server.js --seed=./data/gipod --silent
+node dist/server.js --baseUrl=http://localhost:9000 --port=9000
+```
 
 ## Retrieve available fragments and aliases
 
@@ -49,7 +48,7 @@ This results initially in:
 
 ## Upload a fragment
 
-To upload the LDES fragments, the simulator offers an `/ldes` endpoint to which you can `POST` your LDES fragment with the body containg the fragment content. The simulator will replace the origin and protocol (e.g. `https://private-api.gipod.beta-vlaanderen.be`) in the fragment's id (`"tree:node"."@id"`) with its own origin and protocol (i.e. the baseURL) to ensure that when it returns a fragment, you can follow the fragment relations.
+To upload the LDES fragments, the simulator offers an `/ldes` endpoint to which you can `POST` your LDES fragment with the body containg the fragment content. The simulator will replace the origin and protocol (e.g. `https://private-api.gipod.beta-vlaanderen.be`) in the fragment's id (`"tree:node"."@id"`) with the given baseURL to ensure that when it returns a fragment, you can follow the fragment relations.
 
 To upload an LDES fragment from the (bash) command line using curl:
 
@@ -124,3 +123,33 @@ results in:
 }
 ```
 > **Note**: that the fragment ID and the relation link refer to the simulator instead of the original LDES server.
+
+## Docker
+The simulator can be run as a docker container, after creating a docker image for it. The docker container will keep running until stopped.
+
+To create a docker image, run the following command:
+```bash
+docker build --tag vsds/simulator .
+```
+
+To run the simulator docker image mapped on port 9000, you can use:
+```bash
+docker run -d -p 9000:8080 vsds/simulator
+```
+You can also pass the following arguments when running the container:
+* `SEED=data/gipod` to seed the simulator with a GIPOD data subset (currently the only data set we bundle in the container)
+* `BASEURL=<protocol+origin+port>` to pass the base-url for rewriting the fragment IDs (e.g. `BASEURL=http://www.example.com:80`)
+
+E.g.:
+```bash
+docker run -e SEED=data/gipod -e BASEURL=http://localhost:9000 -d -p 9000:8080 vsds/simulator
+```
+
+The docker run command will return a container ID (e.g. `80ebecbd847b42ca359efd951ed1d8369531a35b567458c1ead1b8867c2d2391`), which you need to stop the container.
+
+Alternatively you can run `docker ps` to retrieve the (short version of the) container ID.
+ ```
+ CONTAINER ID   IMAGE            COMMAND                  CREATED         STATUS         PORTS                  NAMES
+ 80ebecbd847b   vsds/simulator   "/usr/bin/dumb-init …"   5 seconds ago   Up 4 seconds   0.0.0.0:80->8080/tcp   practical_edison
+ ```
+To stop the container, you need to call the stop command with the (long or short) container ID, e.g. `docker stop 80ebecbd847b`

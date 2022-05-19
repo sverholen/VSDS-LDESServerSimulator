@@ -9,12 +9,21 @@ const server = fastify();
 const args = minimist(process.argv.slice(2));
 const silent: boolean = args.silent !== undefined;
 
-if (!silent) console.debug("arguments: ", args);
+if (!silent) {
+  console.debug("arguments: ", args);
+}
 
-const baseUrl = new URL(args.baseUrl || 'http://localhost:8080')
+const baseUrl = new URL(args.baseUrl || 'http://localhost:8080');
 const repository = new LdesFragmentRepository();
 const service = new LdesFragmentService(baseUrl, repository);
 const controller = new LdesFragmentController(service);
+
+server.addHook('onRequest', (request, _reply, done) => {
+  if (!silent) {
+    console.debug(`${request.method} ${request.url}`);
+  }
+  done();
+});
 
 server.get('/', async (_request, _reply) => {
   return controller.getStatistics();
@@ -31,18 +40,29 @@ server.post('/ldes', async (request, reply) => {
   return controller.postFragment(request.body as TreeNode);
 });
 
-
 server.post('/alias', async (request, reply) => {
   reply.statusCode = 201;
   return controller.postAlias(request.body as Redirection);
 });
 
-const options = { port: Number.parseInt(baseUrl.port), host: baseUrl.hostname };
+async function closeGracefully(signal: any) {
+  if (!silent) {
+    console.debug(`Received signal: `, signal);
+  }
+  await server.close();
+  process.exit();
+}
+
+process.on('SIGINT', closeGracefully);
+
+const options = { port: args.port || 8080, host: '0.0.0.0' };
 server.listen(options, async (err, address) => {
   if (args.seed) {
     try {
       (await controller.seed(args.seed)).forEach(x => {
-        if (!silent) console.debug(`seeded with file '${x.file}' containg fragment '${x.fragment}'`);
+        if (!silent) {
+          console.debug(`seeded with file '${x.file}' containg fragment '${x.fragment}'`);
+        }
       });
     } catch (error) {
       console.error(error);
@@ -53,5 +73,7 @@ server.listen(options, async (err, address) => {
     console.error(err)
     process.exit(1)
   }
-  if (!silent) console.log(`Server listening at ${address}`)
+  if (!silent) {
+    console.log(`Simulator listening at ${address}`);
+  }
 });

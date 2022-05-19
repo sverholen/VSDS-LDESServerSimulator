@@ -5,8 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node src/index.js",
-    "dev": "node-dev src/index.ts"
+    "start": "npm run build && node ./dist/server.js",
+    "dev": "node-dev src/server.ts"
   },
   "author": "Ranko Orlic",
   "license": "MIT",
