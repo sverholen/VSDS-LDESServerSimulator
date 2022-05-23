@@ -12,8 +12,9 @@ const silent: boolean = args.silent !== undefined;
 if (!silent) {
   console.debug("arguments: ", args);
 }
-
-const baseUrl = new URL(args.baseUrl || 'http://localhost:8080');
+const port = args.port || 80;
+const host = args.host || 'localhost';
+const baseUrl = new URL(args.baseUrl || `http://${host}:${port}`);
 const repository = new LdesFragmentRepository();
 const service = new LdesFragmentService(baseUrl, repository);
 const controller = new LdesFragmentController(service);
@@ -50,12 +51,12 @@ async function closeGracefully(signal: any) {
     console.debug(`Received signal: `, signal);
   }
   await server.close();
-  process.exit();
+  process.exitCode = 0;
 }
 
 process.on('SIGINT', closeGracefully);
 
-const options = { port: args.port || 8080, host: '0.0.0.0' };
+const options = { port: port, host: host };
 server.listen(options, async (err, address) => {
   if (args.seed) {
     try {

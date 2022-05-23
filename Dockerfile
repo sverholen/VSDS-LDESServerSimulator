@@ -20,10 +20,10 @@ RUN apk add dumb-init
 ## allow passing variables
 ARG SEED=
 ENV SEED=${SEED}
-ARG BASEURL=
+ARG BASEURL=http://localhost
 ENV BASEURL=${BASEURL}
 ## set start command
-EXPOSE 8080
+EXPOSE 80
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 USER node
-CMD ["sh", "-c", "node server.js --seed=${SEED} --baseUrl=${BASEURL}"]
+CMD ["sh", "-c", "node server.js --seed=${SEED} --baseUrl=${BASEURL} --host=0.0.0.0 --port=80"]

@@ -19,8 +19,9 @@ npm run build
 ## Run the simulator
 
 The simulator accepts the following command line arguments:
-* `--port=<port-number>` allows to set the port on which to run the simulator server, defaults to 8080
-* `--baseUrl=<protocol+origin>` allows to set the base URL the server will use for re-writing a fragment ID origin (see [Upload a fragment](#upload-a-fragment) below), defaults to http://localhost:8080
+* `--port=<port-number>` allows to set the port, defaults to 80
+* `--host=<hostname>` allows to set the hostname, defaults to localhost
+* `--baseUrl=<protocol+origin>` allows to set the base URL the server will use for re-writing a fragment ID origin (see [Upload a fragment](#upload-a-fragment) below), defaults to http://localhost:80
 * `--seed=<local-directory>` allows to seed the simulator with the fragments found in the given local directory, no default (will not serve any fragments), optional
 * `--silent` prevents any console debug output, optional
 
@@ -39,7 +40,7 @@ You can use a regulator browser, [postman](https://www.postman.com/), [curl](htt
 
 To query the available fragments and aliases from the (bash) command line using curl:
 
-`curl http://localhost:8080/` 
+`curl http://localhost/` 
 
 This results initially in:
 ```json
@@ -52,14 +53,14 @@ To upload the LDES fragments, the simulator offers an `/ldes` endpoint to which 
 
 To upload an LDES fragment from the (bash) command line using curl:
 
-`curl -X POST http://localhost:8080/ldes -H "Content-Type: application/json-ld" -d "@ldes-fragment.json-ld"`
+`curl -X POST http://localhost/ldes -H "Content-Type: application/json-ld" -d "@sample.jsonld"`
 
-where `ldes-fragment.json-ld` is your fragment file located in the current working directory. This results in something like (depends on the file's content):
+where `sample.jsonld` is your fragment file located in the current working directory. This results in something like (depends on the file's content):
 ```json
-{"path":"/api/v1/ldes/mobility-hindrances?generatedAtTime=2020-12-28T09:36:09.72Z"}
+{"path":"/api/v1/ldes/mobility-hindrances"}
 ```
 
-> **Note**: you need to ensure that your collection of fragments does not contain a relation to a fragment outside of your collection (data subset). Obviously, the simulator will not contain such a fragment and return a HTTP code 404.
+**Note**: you need to ensure that your collection of fragments does not contain a relation to a fragment outside of your collection (data subset). Obviously, the simulator will not contain such a fragment and return a HTTP code 404.
 
 ## Create an alias
 
@@ -69,11 +70,11 @@ Although it does not matter with which fragment you start retrieving a LDES data
 ```
 To create an alias for a fragment from the (bash) command line using curl:
 ```bash
-curl -X POST http://localhost:8080/alias -H "Content-Type: application/json" -d '{"original": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances?generatedAtTime=2020-12-28T09:36:09.72Z", "alias": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances"}'
+curl -X POST http://localhost/alias -H "Content-Type: application/json" -d '{"original": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances", "alias": "https://private-api.gipod.beta-vlaanderen.be/ldes/mobility-hindrances"}'
 ```
 and the simulator will respond with:
 ```json
-{"redirect":{"from":"/api/v1/ldes/mobility-hindrances","to":"/api/v1/ldes/mobility-hindrances?generatedAtTime=2020-12-28T09:36:09.72Z"}}
+{"redirect":{"from":"/ldes/mobility-hindrances","to":"/api/v1/ldes/mobility-hindrances"}}
 ```
 
 ## Retrieve a fragment
@@ -82,24 +83,22 @@ After uploading the fragments and optionally creating aliases, you can retrieve 
 
 To request the simulator home page using curl:
 ```text
-curl http://localhost:8080
+curl http://localhost
 ```
 results in:
 ```json
-{"aliases":["/api/v1/ldes/mobility-hindrances"],"fragments":["/api/v1/ldes/mobility-hindrances?generatedAtTime=2020-12-28T09:36:09.72Z"]}
+{"aliases":["/ldes/mobility-hindrances"],"fragments":["/api/v1/ldes/mobility-hindrances"]}
 ```
 
 To retrieve a fragment directly with curl:
 ```text
-curl http://localhost:8080/api/v1/ldes/mobility-hindrances?generatedAtTime=2020-12-28T09:36:09.72Z
+curl http://localhost/ldes/mobility-hindrances
 ```
 results in:
 ```json
 {
-  "@context": [
-    "https://private-api.gipod.beta-vlaanderen.be/api/v1/context/gipod.jsonld"
-  ],
-  "@id": "http://localhost:8080/api/v1/ldes/mobility-hindrances?generatedAtTime=2020-12-28T09:36:09.72Z",
+  "@context": ["https://private-api.gipod.beta-vlaanderen.be/api/v1/context/gipod.jsonld"],
+  "@id": "http://localhost/api/v1/ldes/mobility-hindrances",
   "@type": "Node",
   "viewOf": "https://private-api.gipod.beta-vlaanderen.be/api/v1/ldes/mobility-hindrances",
   "collectionInfo": {
@@ -109,20 +108,14 @@ results in:
     "timestampPath": "prov:generatedAtTime",
     "versionOfPath": "dct:isVersionOf"
   },
-  "tree:relation": [
-    {
-      "tree:node": "http://localhost:8080/api/v1/ldes/mobility-hindrances?generatedAtTime=2020-12-28T09:37:18.577Z",
-      "@type": "tree:GreaterThanRelation",
-      "tree:path": "prov:generatedAtTime",
-      "tree:value": "2020-12-28T09:37:18.577Z"
-    }
-  ],
+  "tree:relation": [],
   "items": [
       ... (omitted LDES members)
   ]
 }
+
 ```
-> **Note**: that the fragment ID and the relation link refer to the simulator instead of the original LDES server.
+**Note**: that the fragment ID (and, if available) the relation link) refers to the simulator instead of the original LDES server.
 
 ## Docker
 The simulator can be run as a docker container, after creating a docker image for it. The docker container will keep running until stopped.
@@ -134,7 +127,7 @@ docker build --tag vsds/simulator .
 
 To run the simulator docker image mapped on port 9000, you can use:
 ```bash
-docker run -d -p 9000:8080 vsds/simulator
+docker run -d -p 9000:80 vsds/simulator
 ```
 You can also pass the following arguments when running the container:
 * `SEED=data/gipod` to seed the simulator with a GIPOD data subset (currently the only data set we bundle in the container)
@@ -142,14 +135,14 @@ You can also pass the following arguments when running the container:
 
 E.g.:
 ```bash
-docker run -e SEED=data/gipod -e BASEURL=http://localhost:9000 -d -p 9000:8080 vsds/simulator
+docker run -e SEED=data/gipod -e BASEURL=http://localhost:9000 -d -p 9000:80 vsds/simulator
 ```
 
 The docker run command will return a container ID (e.g. `80ebecbd847b42ca359efd951ed1d8369531a35b567458c1ead1b8867c2d2391`), which you need to stop the container.
 
 Alternatively you can run `docker ps` to retrieve the (short version of the) container ID.
  ```
- CONTAINER ID   IMAGE            COMMAND                  CREATED         STATUS         PORTS                  NAMES
- 80ebecbd847b   vsds/simulator   "/usr/bin/dumb-init …"   5 seconds ago   Up 4 seconds   0.0.0.0:80->8080/tcp   practical_edison
+CONTAINER ID   IMAGE            COMMAND                  CREATED         STATUS         PORTS                  NAMES
+569053a527bd   vsds/simulator   "/usr/bin/dumb-init …"   5 seconds ago   Up 4 seconds   0.0.0.0:9000->80/tcp   quizzical_bardeen
  ```
-To stop the container, you need to call the stop command with the (long or short) container ID, e.g. `docker stop 80ebecbd847b`
+To stop the container, you need to call the stop command with the (long or short) container ID, e.g. `docker stop 569053a527bd`
