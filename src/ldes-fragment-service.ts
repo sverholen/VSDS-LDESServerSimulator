@@ -20,7 +20,7 @@ export class LdesFragmentService {
         return path;
     }
 
-    public get(fragmentId: string): TreeNode {
+    public get(fragmentId: string): TreeNode | undefined {
         return this.repository.get(fragmentId);
     }
 

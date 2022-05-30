@@ -1,7 +1,11 @@
 import { TreeNode } from "./tree-specification";
 
+export interface LdesFragmentsDatabase {
+    [key: string]: TreeNode
+}
+
 export class LdesFragmentRepository {
-    private _fragments: any = {};
+    private _fragments: LdesFragmentsDatabase = {};
 
     public save(path: string, body: TreeNode) {
         this._fragments[path] = body;

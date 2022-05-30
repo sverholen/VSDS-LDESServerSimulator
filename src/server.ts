@@ -7,14 +7,14 @@ import { TreeNode } from './tree-specification';
 
 const server = fastify();
 const args = minimist(process.argv.slice(2));
-const silent: boolean = args.silent !== undefined;
+const silent: boolean = args['silent'] !== undefined;
 
 if (!silent) {
   console.debug("arguments: ", args);
 }
-const port = args.port || 80;
-const host = args.host || 'localhost';
-const baseUrl = new URL(args.baseUrl || `http://${host}:${port}`);
+const port = args['port'] || 80;
+const host = args['host'] || 'localhost';
+const baseUrl = new URL(args['baseUrl'] || `http://${host}:${port}`);
 const repository = new LdesFragmentRepository();
 const service = new LdesFragmentService(baseUrl, repository);
 const controller = new LdesFragmentController(service);
@@ -58,9 +58,9 @@ process.on('SIGINT', closeGracefully);
 
 const options = { port: port, host: host };
 server.listen(options, async (err, address) => {
-  if (args.seed) {
+  if (args['seed']) {
     try {
-      (await controller.seed(args.seed)).forEach(x => {
+      (await controller.seed(args['seed'])).forEach(x => {
         if (!silent) {
           console.debug(`seeded with file '${x.file}' containg fragment '${x.fragment}'`);
         }

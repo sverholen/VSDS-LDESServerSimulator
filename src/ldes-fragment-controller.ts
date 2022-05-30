@@ -26,7 +26,7 @@ export class LdesFragmentController {
      * @param fragmentId The ID of the fragment to retrieve.
      * @returns The fragment or undefined.
      */
-    public getFragment(fragmentId: string): TreeNode {
+    public getFragment(fragmentId: string): TreeNode | undefined {
         while (this.redirections[fragmentId] !== undefined) {
             fragmentId = this.redirections[fragmentId];
         }

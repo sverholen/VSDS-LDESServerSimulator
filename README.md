@@ -18,6 +18,15 @@ npm i
 npm run build
 ```
 
+## Test the simulator
+
+At this moment, the simulator is completely unit tested with a coverage of 100% at the controller level (so excluding the [infrastructure part](./src/server.ts)).
+
+To run the tests (after first building the simulator) use the following command:
+```bash
+npm test
+```
+
 ## Run the simulator
 
 The simulator accepts the following command line arguments:
